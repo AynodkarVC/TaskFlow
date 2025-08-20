@@ -2,13 +2,14 @@ package org.aynodkar.taskflow.controller;
 
 import org.aynodkar.taskflow.entity.Task;
 import org.aynodkar.taskflow.service.TaskService;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/task")
@@ -18,38 +19,55 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping
-    public List<Task> findAll() {
-        return taskService.getAllTasks();
+    public ResponseEntity<List<Task>> findAll() {
+        return new ResponseEntity<>(taskService.getAllTasks(),HttpStatus.OK);
     }
 
     @PostMapping
-    public Task create(@RequestBody Task task){
-        task.setCreatedAt(LocalDateTime.now());
-        taskService.createTask(task);
-        return task;
-    }
-    @GetMapping("id/{id}")
-    public ResponseEntity<Task> findById(@PathVariable String id){
-        return taskService.findTaskById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Task> create(@RequestBody Task task){
+        try {
+            return new ResponseEntity<>(taskService.createTask(task),HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    @DeleteMapping("id/{id}")
-    public boolean deleteById(@PathVariable String id){
-        taskService.deleteTaskById(id);
-        return true;
+    @GetMapping("{id}")
+    public ResponseEntity<Optional<Task>> findById(@PathVariable String id){
+        Optional<Task> task = taskService.findTaskById(id);
+        if (task.isPresent()) {
+            return new ResponseEntity<>(taskService.findTaskById(id),HttpStatus.OK);
+        }else  {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable String id){
+        Optional<Task> task = taskService.findTaskById(id);
+        if (task.isPresent()) {
+            taskService.deleteTaskById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping
-    public boolean deleteAllTasks(){
+    public ResponseEntity<Boolean> deleteAllTasks(){
         taskService.deleteAllTasks();
-        return true;
+        return new ResponseEntity<>(true,HttpStatus.OK);
     }
 
-    @PutMapping("id/{id}")
-    public Task update(@PathVariable String id, @RequestBody Task updatedTask){
-        return taskService.updateTaskById(id, updatedTask);
+    @PutMapping("{id}")
+    public ResponseEntity<Task> update(@PathVariable String id, @RequestBody Task updatedTask){
+        Optional<Task> task = taskService.findTaskById(id);
+        if (task.isPresent()) {
+            return new ResponseEntity<>(taskService.updateTaskById(id,updatedTask),HttpStatus.OK);
+        }else  {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
     }
 
 }
