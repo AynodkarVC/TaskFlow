@@ -2,7 +2,6 @@ package org.aynodkar.taskflow.service;
 
 import org.aynodkar.taskflow.entity.User;
 import org.aynodkar.taskflow.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,7 +44,7 @@ public class UserService {
     public User updateUser(User updatedUser){
         User oldUser = userRepository.findById(updatedUser.getId()).orElse(null);
         if(oldUser!=null){
-            if (updatedUser.getName() != null && !updatedUser.getName().isEmpty()){ oldUser.setName(updatedUser.getName());}
+            if (updatedUser.getUserName() != null && !updatedUser.getUserName().isEmpty()){ oldUser.setUserName(updatedUser.getUserName());}
             if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()){ oldUser.setEmail(updatedUser.getEmail());}
             if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()){ oldUser.setPassword(updatedUser.getPassword());}
         };
